@@ -6,3 +6,4 @@ mlruns
 data/raw
 
 __pycache__
+model_summary.txt

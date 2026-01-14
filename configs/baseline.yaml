@@ -1,8 +1,6 @@
-experiment:
-  name: "steam_tag_prediction_baseline"
+experiment_name: "steam_tag_prediction_baseline"
 
-model:
-  name: "Constant predictor"
-  p_train_samples: 0.75
+model_name: "Constant predictor"
+p_train_samples: 0.75
 
 random_seed: 42

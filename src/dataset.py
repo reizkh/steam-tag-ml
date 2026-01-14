@@ -13,9 +13,9 @@ class SteamAppsDataset(Dataset):
         self.tag_id2label: Dict[int, str]
         self.tag_label2id: Dict[str, int]
 
-        self.conn = psycopg2.connect(**db_params) # type: ignore
-        with self.conn:
-            with self.conn.cursor() as cur:
+        conn = psycopg2.connect(**db_params) # type: ignore
+        with conn:
+            with conn.cursor() as cur:
                 cur.execute("SELECT app_id, title, description FROM game ORDER BY app_id")
                 self.apps = pd.DataFrame(cur.fetchall(), columns=["app_id", "title", "description"])
 

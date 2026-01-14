@@ -1,0 +1,12 @@
+experiment_name: distilbert_overfit_test
+run_name: null
+
+device: cpu
+num_labels: 442
+model_name: distilbert-base-uncased
+batch_size: 16
+threshold: 0.5
+max_epochs: 100
+
+p_train_samples: 0.0002
+random_seed: 42
