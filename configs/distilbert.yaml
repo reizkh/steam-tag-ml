@@ -1,6 +1,8 @@
-experiment_name: "steam_tag_prediction_baseline"
+experiment_name: distilbert_main
+run_name: null
 
-model_name: "Constant predictor"
+device: cpu
+# num_labels: 442
 tags: ['2D', 'RPG', 'Multiplayer', 'Simulation', 'Puzzle', 'Atmospheric',
        'Great Soundtrack', 'Story Rich', 'Sci-fi', 'Shooter', 'Funny',
        'First-Person', 'Fantasy', 'Difficult', 'Platformer',
@@ -21,6 +23,10 @@ tags: ['2D', 'RPG', 'Multiplayer', 'Simulation', 'Puzzle', 'Atmospheric',
        'Military', 'Post-apocalyptic', 'Crafting', 'RPGMaker', 'Fast-Paced',
        'Survival Horror', 'Action-Adventure', 'Bullet Hell', 'Futuristic',
        'Relaxing', 'Realistic', 'Moddable']
-p_train_samples: 0.6
+model_name: distilbert-base-uncased
+batch_size: 8
+threshold: 0.5
+max_epochs: 10
 
+p_train_samples: 0.6
 random_seed: 42

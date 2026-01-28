@@ -75,6 +75,7 @@ class BaseModelTrainer(ABC):
                     **{f'val_{k}': v for k, v in val_metrics.items()}
                 }
                 self.logger.log_metrics(all_metrics, step=epoch)
+                self.logger.log_model(self.model, f'model_epoch_{epoch}')
                 
             # Логирование финальной модели
             self._log_final_artifacts()

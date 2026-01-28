@@ -20,13 +20,12 @@ def run_baseline(X_train, X_test, y_train, y_test):
     clf_report = sklearn.metrics.classification_report(
         y_test, y_pred, 
         output_dict=True, 
-        target_names=list(dataset.tag_label2id.keys()),
+        target_names=dataset.tag_labels,
         zero_division=1
     )
     clf_report = {
         "val_" + (re.sub(r"[^A-Za-z _]", "", "__".join([cls, key]))): val 
         for cls, metrics in clf_report.items() for key, val in metrics.items() # type: ignore
-        if cls in ["macro avg", "weighted avg"]
     }
 
     mlflow.log_metric("val_accuracy", hamming_accuracy)
@@ -42,7 +41,7 @@ if __name__ == "__main__":
         mlflow.log_param("seed", cfg.random_seed)
         mlflow.log_param("train samples", cfg.p_train_samples)
 
-        dataset = SteamAppsDataset(db_params)
+        dataset = SteamAppsDataset(db_params, tags=cfg.get("tags")) # type: ignore
         n_train_samples = int(len(dataset)*cfg.p_train_samples)
         rng = torch.Generator().manual_seed(cfg.random_seed)
 

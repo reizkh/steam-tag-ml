@@ -11,7 +11,7 @@ from tqdm import tqdm
 class DistilBertForMultiLabelClassification(nn.Module):
     def __init__(self, num_labels: int, model_name: str = "distilbert-base-uncased"):
         super().__init__()
-        self.distilbert = DistilBertModel.from_pretrained(model_name)
+        self.distilbert = DistilBertModel.from_pretrained(model_name).requires_grad_(False)
         self.dropout = nn.Dropout(0.1)
         self.classifier = nn.Linear(self.distilbert.config.hidden_size, num_labels)
         self.num_labels = num_labels
@@ -25,6 +25,7 @@ class DistilBertForMultiLabelClassification(nn.Module):
         
         # Используем [CLS] токен для классификации
         hidden_state = outputs.last_hidden_state[:, 0]
+        hidden_state = self.dropout(hidden_state)
         logits = self.classifier(hidden_state)
         
         return logits
@@ -33,9 +34,9 @@ class DistilBertTrainer(BaseModelTrainer):
     tokenizer: DistilBertTokenizer
     model: DistilBertForMultiLabelClassification
 
-    def __init__(self, config, tag_label2id, logger=None):
+    def __init__(self, config, tags, logger=None):
         super().__init__(config, logger)
-        self.tag_label2id = tag_label2id
+        self.tags = tags
 
     def _train_epoch(self, dataloader, epoch) -> Dict[str, float]:
         self.model.train()
@@ -82,20 +83,21 @@ class DistilBertTrainer(BaseModelTrainer):
         clf_report = sklearn.metrics.classification_report(
             y_test, y_pred, 
             output_dict=True, 
-            target_names=list(self.tag_label2id.keys()),
+            target_names=self.tags,
             zero_division=1
         )
         clf_report = {
             re.sub(r"[^A-Za-z _]", "", "__".join([cls, key])): val
             for cls, metrics in clf_report.items() for key, val in metrics.items() # type: ignore
-            if cls in ["macro avg", "weighted avg"]
         }
 
         return {"avg_loss": total_loss / len(dataloader.dataset), "accuracy": accuracy, **clf_report}
 
     def create_model(self):
+        assert self.config.get("num_labels") or self.config.get("tags")
+        num_labels = self.config.get("num_labels") or len(self.config.get("tags"))
         return DistilBertForMultiLabelClassification(
-            num_labels=self.config.num_labels, model_name=self.config.model_name)
+            num_labels=num_labels, model_name=self.config.model_name)
     
     def preprocess_data(self, data):
         if not hasattr(self, "tokenizer"):
@@ -103,7 +105,7 @@ class DistilBertTrainer(BaseModelTrainer):
         return self.tokenizer(
             data,
             truncation=True,
-            padding='max_length',
+            padding='longest',
             max_length=512,
             return_tensors='pt'
         )
@@ -113,3 +115,10 @@ class DistilBertTrainer(BaseModelTrainer):
             params=self.model.classifier.parameters(),
             lr=self.config.get("learning_rate", 5e-5)
         )
+    
+    def _log_base_params(self):
+        super()._log_base_params()
+        self.logger.log_params({
+            "threshold": self.config.get("threshold", 0.5),
+            "tags": self.tags
+        })
