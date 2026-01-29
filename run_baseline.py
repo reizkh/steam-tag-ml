@@ -24,7 +24,7 @@ def run_baseline(X_train, X_test, y_train, y_test):
         zero_division=1
     )
     clf_report = {
-        "val_" + (re.sub(r"[^A-Za-z _]", "", "__".join([cls, key]))): val 
+        f"val_{re.sub(r"[^0-9A-Za-z_]", "", "_".join([cls, key]).replace(" ", "_"))}": val
         for cls, metrics in clf_report.items() for key, val in metrics.items() # type: ignore
     }
 

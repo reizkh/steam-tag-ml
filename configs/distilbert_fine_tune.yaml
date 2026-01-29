@@ -1,4 +1,4 @@
-experiment_name: distilbert_main
+experiment_name: distilbert_fine_tune
 run_name: null
 
 device: cpu
@@ -29,7 +29,8 @@ model_name: distilbert-base-uncased
 batch_size: 12
 threshold: 0.5
 max_epochs: 15
-learning_rate: 0.001
+classifier_learning_rate: 0.001
+distilbert_learning_rate: 0.0001
 weight_decay: 0.0001
 
 p_train_samples: 0.6

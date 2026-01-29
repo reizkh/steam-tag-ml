@@ -11,7 +11,7 @@ from tqdm import tqdm
 class DistilBertForMultiLabelClassification(nn.Module):
     def __init__(self, num_labels: int, model_name: str = "distilbert-base-uncased"):
         super().__init__()
-        self.distilbert = DistilBertModel.from_pretrained(model_name).requires_grad_(False)
+        self.distilbert = DistilBertModel.from_pretrained(model_name)
         self.dropout = nn.Dropout(0.1)
         self.classifier = nn.Linear(self.distilbert.config.hidden_size, num_labels)
         self.num_labels = num_labels
@@ -30,7 +30,7 @@ class DistilBertForMultiLabelClassification(nn.Module):
         
         return logits
 
-class DistilBertTrainer(BaseModelTrainer):
+class DistilBertFTTrainer(BaseModelTrainer):
     tokenizer: DistilBertTokenizer
     model: DistilBertForMultiLabelClassification
 
@@ -110,14 +110,16 @@ class DistilBertTrainer(BaseModelTrainer):
         )
     
     def create_optimizer(self):
-        self.optimizer = torch.optim.Adam(
-            params=self.model.classifier.parameters(),
-            lr=self.config.get("learning_rate", 5e-5)
-        )
+        self.optimizer = torch.optim.Adam([
+            {'params': self.model.classifier.parameters(), 'lr': self.config.get("classifier_learning_rate")},
+            {'params': self.model.distilbert.parameters(), 'lr': self.config.get("distilbert_learning_rate")}
+        ])
     
     def _log_base_params(self):
         super()._log_base_params()
         self.logger.log_params({
             "threshold": self.config.get("threshold", 0.5),
-            "tags": self.tags
+            "tags": self.tags,
+            'classifier_lr': self.config.get("classifier_learning_rate"),
+            'base_lr': self.config.get("distilbert_learning_rate")
         })

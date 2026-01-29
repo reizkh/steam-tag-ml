@@ -24,7 +24,8 @@ class MLFlowLogger:
         mlflow.log_artifact(local_path, artifact_path)
     
     def log_model(self, model, artifact_path: str, **kwargs):
-        mlflow.pytorch.log_model(model, artifact_path, **kwargs) #type: ignore
+        torch.save(model.state_dict(), f"checkpoint_{artifact_path}.pth")
+        self.log_artifact(f"checkpoint_{artifact_path}.pth")
     
     def set_tags(self, tags: Dict[str, Any]):
         mlflow.set_tags(tags)
@@ -46,7 +47,7 @@ class BaseModelTrainer(ABC):
             'model_type': self.__class__.__name__,
             'device': self.config.get('device', 'cuda'),
             'batch_size': self.config.get('batch_size', 32),
-            'learning_rate': self.config.get('learning_rate', 5e-5),
+            # 'learning_rate': self.config.get('learning_rate', 5e-5),
             'max_epochs': self.config.get('max_epochs', 10)
         }
         self.logger.log_params(base_params)
